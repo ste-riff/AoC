@@ -1,8 +1,10 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 using namespace std;
@@ -10,6 +12,7 @@ using namespace std;
 // Functions declaration
 void day1();
 void day2();
+void day3();
 
 // Classes
 class Elf {
@@ -52,7 +55,8 @@ int main() {
     cout << "AoC 2023" << endl;
 
     // day1();
-    day2();
+    // day2();
+    day3();
 
    return 0;
 }
@@ -223,4 +227,86 @@ void day2() {
 
     cout << "Total score in first attempt: " << total_score_first << " points." << endl;
     cout << "Total score in second attempt: " << total_score_second << " points." << endl;
+}
+
+void day3() {
+    cout << "### Day 3 ###" << endl;
+    
+    const string filename = "C:/Users/H780521/Documents/AoC/Inputs/Day3.txt";
+    ifstream input_file(filename);
+    string line, rucksack1, rucksack2;
+    size_t index;
+    int total_elf_prority = 0, group_counter = 0, total_group_priority = 0;
+    unordered_map<char, int> inventory;
+    char map_key = 'a';
+    string group[3];
+    map<char, int> group_items;
+    
+    // initialize hash map inventory
+    // Insert lowercase letters with corresponding values
+    for (int value = 1; value <= 26; ++value) {
+        inventory[map_key] = value;
+        ++map_key;
+    }
+
+    // Insert uppercase letters with corresponding values
+    map_key = 'A';
+    for (int value = 27; value <= 52; ++value) {
+        inventory[map_key] = value;
+        ++map_key;
+    }
+
+    while(getline(input_file, line, '\n')) {
+        // split each line in two substrings, equally long
+        rucksack1 = line.substr(0, (line.size() / 2));
+        rucksack2 = line.substr((line.size() / 2), (line.size() / 2));
+
+        if(rucksack1.size() != rucksack2.size()) {
+            cout << "Error in string splitting, not same length!!" << endl;
+            return;
+        }
+        index = rucksack1.find_first_of(rucksack2);
+        total_elf_prority += inventory[rucksack1.at(index)];
+
+        // start by removing duplicates inside the same string, 
+        // save found chars in group_items map.
+        // when one char is found 3 times (once each string), that's the common char for all strings
+
+        // remove duplicates in input string
+        std::sort(line.begin(), line.end());
+        line.erase(std::unique(line.begin(), line.end()), line.end());
+        group[group_counter] = line;
+        cout << "New string: " << line << endl;
+
+        if(group_counter == 2) {
+            for(char c_key: group[0]) {
+                group_items.insert({c_key, 1});
+            }
+            for(char c_key: group[1]) {
+                if(group_items.find(c_key) == group_items.end()) {
+                    group_items.insert({c_key, 1});
+                } else {
+                    group_items.erase(c_key);
+                    group_items.insert({c_key, 2});
+                }
+            }
+            for(char c_key: group[2]) {
+                if(group_items.find(c_key) == group_items.end()) {
+                    group_items.insert({c_key, 1});
+                } else {
+                    if(group_items[c_key] == 2) {
+                        total_group_priority += inventory[c_key];
+                        group_items.clear();
+                        break;
+                    }
+                }
+            }
+            group_counter = 0;
+        } else {
+            group_counter++;
+        }
+    }
+    
+    cout << "Total priority count: " << total_elf_prority << endl;
+    cout << "Total group priority: " << total_group_priority << endl;
 }
