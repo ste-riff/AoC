@@ -113,7 +113,8 @@ void day2() {
     ifstream input_file(filename);
     string line, player1, player2;
 
-    int total_score = 0;
+    int total_score_first = 0;
+    int total_score_second = 0;
     
     while(getline(input_file, line, '\n')) {
         stringstream round(line);
@@ -123,53 +124,95 @@ void day2() {
         switch(player1[0]) {
             case 'A':
                 if(player2[0] == 'X') {
-                    // player2 played Rock, 1 point
-                    total_score++;
-                    // result is a draw, 3 points
-                    total_score += 3;
+                    // 1st: player2 played Rock, 1 point
+                    total_score_first++;
+                    // 1st: result is a draw, 3 points
+                    total_score_first += 3;
+
+                    // 2nd: player2 needs to loose, plays Scissors, 3 points
+                    total_score_second += 3;
+                    // 2nd: result is a loss, 0 points
                 } else if(player2[0] == 'Y') {
-                    // player2 played Paper, 2 points
-                    total_score += 2;
-                    // result is a win, 6 points
-                    total_score += 6;
+                    // 1st: player2 played Paper, 2 points
+                    total_score_first += 2;
+                    // 1st: result is a win, 6 points
+                    total_score_first += 6;
+
+                    // 2nd: player2 needs to draw, plays Rock, 1 point
+                    total_score_second++;
+                    // 2nd: result is a draw, 3 points
+                    total_score_second += 3;
                 } else if(player2[0] == 'Z') {
-                    // player2 played Scissors, 3 points
-                    total_score += 3;
-                    // result is a loss, 0 points
+                    // 1st: player2 played Scissors, 3 points
+                    total_score_first += 3;
+                    // 1st: result is a loss, 0 points
+
+                    // 2nd: player2 needs to win, plays Paper, 2 points
+                    total_score_second += 2;
+                    // 2nd: result is a win, 6 points
+                    total_score_second += 6;
                 }
                 break;
             case 'B':
                 if(player2[0] == 'X') {
-                    // player2 played Rock, 1 point
-                    total_score++;
-                    // result is a loss, 0 points
+                    // 1st: player2 played Rock, 1 point
+                    total_score_first++;
+                    // 1st: result is a loss, 0 points
+
+                    // 2nd: player2 needs to loose, plays Rock, 1 point
+                    total_score_second ++;
+                    // 2nd: result is a loss, 0 points
                 } else if(player2[0] == 'Y') {
-                    // player2 played Paper, 2 points
-                    total_score += 2;
-                    // result is a draw, 3 points
-                    total_score += 3;
+                    // 1st: player2 played Paper, 2 points
+                    total_score_first += 2;
+                    // 1st: result is a draw, 3 points
+                    total_score_first += 3;
+
+                    // 2nd: player2 needs to draw, plays Paper, 2 points
+                    total_score_second += 2;
+                    // 2nd: result is a draw, 3 points
+                    total_score_second += 3;
                 } else if(player2[0] == 'Z') {
-                    // player2 played Scissors, 3 points
-                    total_score += 3;
-                    // result is a win, 6 points
-                    total_score += 6;
+                    // 1st: player2 played Scissors, 3 points
+                    total_score_first += 3;
+                    // 1st: result is a win, 6 points
+                    total_score_first += 6;
+                    
+                    // 2nd: player2 needs to win, plays Scissors, 3 points
+                    total_score_second += 3;
+                    // 2nd: result is a win, 6 points
+                    total_score_second += 6;
                 }
                 break;
             case 'C':
                 if(player2[0] == 'X') {
-                    // player2 played Rock, 1 point
-                    total_score++;
-                    // result is a win, 6 points
-                    total_score += 6;
+                    // 1st: player2 played Rock, 1 point
+                    total_score_first++;
+                    // 1st: result is a win, 6 points
+                    total_score_first += 6;
+
+                    // 2nd: player2 needs to loose, plays Paper, 2 points
+                    total_score_second += 2;
+                    // 2nd: result is a loss, 0 points
                 } else if(player2[0] == 'Y') {
-                    // player2 played Paper, 2 points
-                    total_score += 2;
-                    // result is a loss, 0 points
+                    // 1st: player2 played Paper, 2 points
+                    total_score_first += 2;
+                    // 1st: result is a loss, 0 points
+
+                    // 2nd: player2 needs to draw, plays Scissors, 3 points
+                    total_score_second += 3;
+                    // 2nd: result is a draw, 3 points
+                    total_score_second += 3;
                 } else if(player2[0] == 'Z') {
-                    // player2 played Scissors, 3 points
-                    total_score += 3;
-                    // result is a draw, 3 points
-                    total_score += 3;
+                    // 1st: player2 played Scissors, 3 points
+                    total_score_first += 3;
+                    // 1st: result is a draw, 3 points
+                    total_score_first += 3;
+
+                    // 2nd: player2 needs to win, plays Rock, 1 point
+                    total_score_second++;
+                    // 2nd: result is a win, 6 points
+                    total_score_second += 6;
                 }
                 break;
             default:
@@ -178,5 +221,6 @@ void day2() {
         } 
     }
 
-    cout << "Total score: " << total_score << " points." << endl;
+    cout << "Total score in first attempt: " << total_score_first << " points." << endl;
+    cout << "Total score in second attempt: " << total_score_second << " points." << endl;
 }
