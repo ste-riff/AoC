@@ -319,7 +319,7 @@ void day4() {
     const string filename = "C:/Users/H780521/Documents/AoC/Inputs/Day4.txt";
     ifstream input_file(filename);
     string line, section1, section2, begin, end;
-    int begin1 = 0, end1 = 0, begin2 = 0, end2 = 0, overlapping_pairs = 0;
+    int begin1 = 0, end1 = 0, begin2 = 0, end2 = 0, contained_pairs = 0, overlapping_pairs = 0;
 
     while(getline(input_file, line, '\n')){
         stringstream pair(line);
@@ -338,26 +338,35 @@ void day4() {
         getline(section2ss, end, '-');
         end2 = stoi(end);
 
+        // search for completely contained pairs
         if(begin1 < begin2) {
             if(end1 >= end2) {
                 // section2 is contained in section1
-                overlapping_pairs++;
+                contained_pairs++;
             }
         } else if (begin1 > begin2) {
             if(end1 <= end2) {
                 // section1 is contained in section2
-                overlapping_pairs++;
+                contained_pairs++;
             }
         } else if (begin1 == begin2) {
             if(end1 <= end2) {
                 // section1 is contained in section2
-                overlapping_pairs++;
+                contained_pairs++;
             } else if (end1 > end2) {
                 // section2 is contained in section1
-                overlapping_pairs++;
+                contained_pairs++;
             }
+        }
+
+        // search for overlapping pairs
+        if(begin1 <= begin2 && begin2 <= end1) {
+            overlapping_pairs++;
+        } else if (begin2 <= begin1 && begin1 <= end2) {
+            overlapping_pairs++;
         }
     }
 
+    cout << "There are " << contained_pairs << " contained pairs." << endl;
     cout << "There are " << overlapping_pairs << " overlapping pairs." << endl;
 }
