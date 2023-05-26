@@ -13,6 +13,7 @@ using namespace std;
 void day1();
 void day2();
 void day3();
+void day4();
 
 // Classes
 class Elf {
@@ -56,7 +57,8 @@ int main() {
 
     // day1();
     // day2();
-    day3();
+    // day3();
+    day4();
 
    return 0;
 }
@@ -309,4 +311,53 @@ void day3() {
     
     cout << "Total priority count: " << total_elf_prority << endl;
     cout << "Total group priority: " << total_group_priority << endl;
+}
+
+void day4() {
+    cout << "### Day 4 ###" << endl;
+    
+    const string filename = "C:/Users/H780521/Documents/AoC/Inputs/Day4.txt";
+    ifstream input_file(filename);
+    string line, section1, section2, begin, end;
+    int begin1 = 0, end1 = 0, begin2 = 0, end2 = 0, overlapping_pairs = 0;
+
+    while(getline(input_file, line, '\n')){
+        stringstream pair(line);
+        getline(pair, section1, ',');
+        getline(pair, section2, ',');
+
+        stringstream section1ss(section1);
+        getline(section1ss, begin, '-');
+        begin1 = stoi(begin);
+        getline(section1ss, end, '-');
+        end1 = stoi(end);
+
+        stringstream section2ss(section2);
+        getline(section2ss, begin, '-');
+        begin2 = stoi(begin);
+        getline(section2ss, end, '-');
+        end2 = stoi(end);
+
+        if(begin1 < begin2) {
+            if(end1 >= end2) {
+                // section2 is contained in section1
+                overlapping_pairs++;
+            }
+        } else if (begin1 > begin2) {
+            if(end1 <= end2) {
+                // section1 is contained in section2
+                overlapping_pairs++;
+            }
+        } else if (begin1 == begin2) {
+            if(end1 <= end2) {
+                // section1 is contained in section2
+                overlapping_pairs++;
+            } else if (end1 > end2) {
+                // section2 is contained in section1
+                overlapping_pairs++;
+            }
+        }
+    }
+
+    cout << "There are " << overlapping_pairs << " overlapping pairs." << endl;
 }
