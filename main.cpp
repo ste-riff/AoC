@@ -14,6 +14,7 @@ void day1();
 void day2();
 void day3();
 void day4();
+void day5();
 
 // Classes
 class Elf {
@@ -58,7 +59,8 @@ int main() {
     // day1();
     // day2();
     // day3();
-    day4();
+    // day4();
+    day5();
 
    return 0;
 }
@@ -369,4 +371,16 @@ void day4() {
 
     cout << "There are " << contained_pairs << " contained pairs." << endl;
     cout << "There are " << overlapping_pairs << " overlapping pairs." << endl;
+}
+
+void day5() {
+    cout << "### Day 5 ###" << endl;
+
+    const string filename = "C:/Users/H780521/Documents/AoC/Inputs/Day5.txt";
+    ifstream input_file(filename);
+    string line;
+
+    while (getline(input_file, line, '\n')) {
+
+    }
 }
