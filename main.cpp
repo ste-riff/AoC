@@ -2,7 +2,9 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <queue>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -24,11 +26,9 @@ class Elf {
     public:
         Elf() {
             total_calories = 0;
-            // cout << "New elf created" << endl;
         }
 
         ~Elf() {
-            // cout << "Elf destroyed" << endl;
         }
 
         bool operator > (const Elf& a) const {
@@ -42,7 +42,6 @@ class Elf {
         void addFood(int calories) {
             food.push_back(calories);
             total_calories += calories;
-            // cout << "Food worth " << calories << " added to elf." << endl; 
         }
 
         void Reset() {
@@ -376,11 +375,59 @@ void day4() {
 void day5() {
     cout << "### Day 5 ###" << endl;
 
-    const string filename = "C:/Users/H780521/Documents/AoC/Inputs/Day5.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day5.txt";
     ifstream input_file(filename);
     string line;
+    vector<queue<char>> crate_stacks; // Using queue instead of stack since each stack is filled from the top (inverse order)
 
-    while (getline(input_file, line, '\n')) {
+    if (input_file.fail()) {
+        cout << "Unable to open the file: " << filename << endl;
+    }
+    else {
+        int stack_id = 0;
+        size_t pos = 0;
 
+        while (getline(input_file, line, '\n')) {
+            stack_id = 0; // Reset stack_id to loop from the beginning again
+            
+            // First part of the input file, processing the stacks
+            if (!line.find('[')) { // if the line contains a square bracket, then it contains crates to register
+                
+                // While pos is less than the end of the string, keep on looping 4 char at a time. 
+                // If they contain brackets, they contain a crate, otherwise the stack is empty
+                while (pos < line.length()) {
+                    // While reading the first line, create all stacks.
+                    try {
+                        crate_stacks.at(stack_id);
+                    }
+                    catch (const out_of_range& oor) {
+                        // DEBUG cout << "Stack not yet created, creating it now..." << endl;
+                        queue<char> generic_stack;
+                        crate_stacks.push_back(generic_stack);
+
+                        // DEBUG cout << "Stack #" << stack_id << " created." << endl;
+                    }
+
+                    if (!line.find('[')) {
+                        crate_stacks.at(stack_id).push(line[line.find('[') + 1]);
+                        // DEBUG cout << "Value " << line[line.find('[') + 1] << " pushed in stack " << stack_id << endl;
+                    }
+
+                    // DEBUG cout << "Substring: " << line.substr(pos, 4) << endl;
+                    line.erase(0, 4);
+                    stack_id++;
+                }
+            }
+
+            // Remove line with ids and with empty spaces
+            if (line[0] == ' ') {
+                // do nothing
+            }
+
+            // Process all moves
+            if (!line.fine("move")) {
+
+            }
+        }
     }
 }
