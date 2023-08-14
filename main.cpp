@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <queue>
+#include <deque>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -378,7 +378,7 @@ void day5() {
     const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day5.txt";
     ifstream input_file(filename);
     string line;
-    vector<queue<char>> crate_stacks; // Using queue instead of stack since each stack is filled from the top (inverse order)
+    vector<deque<char>> crate_stacks; // Using deque instead of stack since each stack is filled from the top (inverse order)
 
     if (input_file.fail()) {
         cout << "Unable to open the file: " << filename << endl;
@@ -402,14 +402,14 @@ void day5() {
                     }
                     catch (const out_of_range& oor) {
                         // DEBUG cout << "Stack not yet created, creating it now..." << endl;
-                        queue<char> generic_stack;
+                        deque<char> generic_stack;
                         crate_stacks.push_back(generic_stack);
 
                         // DEBUG cout << "Stack #" << stack_id << " created." << endl;
                     }
 
                     if (!line.find('[')) {
-                        crate_stacks.at(stack_id).push(line[line.find('[') + 1]);
+                        crate_stacks.at(stack_id).push_back(line[line.find('[') + 1]);
                         // DEBUG cout << "Value " << line[line.find('[') + 1] << " pushed in stack " << stack_id << endl;
                     }
 
@@ -425,9 +425,34 @@ void day5() {
             }
 
             // Process all moves
-            if (!line.fine("move")) {
+            if (!line.find("move")) {
+                // For each "move" line, extract the number of pops (crates_to_move) and the stacks (stack_from and stack_to)
+                // To do so, split each line using the blank space as separator
+                int begin = 0, end;
+                int crates_to_move = 0, stack_from, stack_to;
 
+                end = line.find_first_of(" ");
+                line = line.erase(begin, end + 1); // remove "move "
+                end = line.find_first_of(" ");
+                crates_to_move = stoi(line.substr(begin, end)); // store crates_to_move
+                // DEBUG cout << "crates_to_move: " << crates_to_move << endl;
+                line = line.erase(begin, end + 6); // remove "<crates_to_move> from "
+                end = line.find_first_of(" ");
+                stack_from = stoi(line.substr(begin, end)); // store stack_from
+                line = line.erase(begin, end + 4); // remove "<stack_from> to "
+                end = line.find_first_of(" ");
+                stack_to = stoi(line.substr(begin, end)); // store stack_to
+
+                // DEBUG cout << "Move " << crates_to_move << " from " << stack_from << " to " << stack_to << endl;
+                for (int i = 0; i < crates_to_move; i++) {
+                    crate_stacks[stack_to - 1].push_front(crate_stacks[stack_from - 1].front());
+                    crate_stacks[stack_from - 1].pop_front();
+                }
             }
         }
     }
+
+    for (int i = 0; i < crate_stacks.size(); i++)
+        cout << crate_stacks[i].front();
+    cout << endl;
 }
