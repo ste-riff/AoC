@@ -4,6 +4,7 @@
 #include <map>
 #include <deque>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -444,9 +445,24 @@ void day5() {
                 stack_to = stoi(line.substr(begin, end)); // store stack_to
 
                 // DEBUG cout << "Move " << crates_to_move << " from " << stack_from << " to " << stack_to << endl;
-                for (int i = 0; i < crates_to_move; i++) {
+
+                // Move crates with CrateMover9000 (Part1)
+                /*for (int i = 0; i < crates_to_move; i++) {
                     crate_stacks[stack_to - 1].push_front(crate_stacks[stack_from - 1].front());
                     crate_stacks[stack_from - 1].pop_front();
+                }*/
+
+                // Move crates with CrateMover9001 (Part2)
+                stack<char> temp_stack;
+                
+                // use a stack to "pop" elements in the right order from the queue
+                for (int i = 0; i < crates_to_move; i++) {
+                    temp_stack.push(crate_stacks[stack_from - 1].front());
+                    crate_stacks[stack_from - 1].pop_front();
+                }
+                for (int i = 0; i < crates_to_move; i++) {
+                    crate_stacks[stack_to - 1].push_front(temp_stack.top());
+                    temp_stack.pop();
                 }
             }
         }
