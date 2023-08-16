@@ -482,42 +482,85 @@ void day6() {
     const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day6.txt";
     ifstream input_file(filename);
     string line;
-    int char_id = 0;
     
     if (input_file.fail()) {
         cout << "Unable to open the file: " << filename << endl;
     }
     else {
         char c;
-        deque<char> sequence (4, ' ');
+        int package_length = 4, message_length = 14;
+        deque<char> sequence_package (package_length, ' ');
+        deque<char> sequence_message (message_length, ' ');
+        int char_id_package = 0, char_id_message = 0;
+        bool repetition_package = false, repetition_message = false, package_found = false, message_found = false;
 
         while (input_file.get(c)) {
-            char_id++; // increment counter
+            // Looking for start of package
+            if (!package_found) {
+                char_id_package++; // increment counter
 
-            sequence.pop_front(); // remove the oldest char
-            sequence.push_back(c); // insert last read character
+                sequence_package.pop_front(); // remove the oldest char
+                sequence_package.push_back(c); // insert last read character
 
-            bool repetition = false;
+                repetition_package = false;
 
-            for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                    if (i == j)
-                        break;
-                    if (sequence[i] == sequence[j]) {
-                        repetition = true;
-                        break;
+                for (int i = 0; i < package_length; i++) {
+                    for (int j = 0; j < package_length; j++) {
+                        if (i == j)
+                            break;
+                        if (sequence_package[i] == sequence_package[j]) {
+                            repetition_package = true;
+                            break;
+                        }
+                        else {
+                            repetition_package = false;
+                        }
                     }
-                    else {
-                        repetition = false;
-                    }
+                    if (repetition_package)
+                        break;
                 }
-                if (repetition)
-                    break;
-            }
 
-            if (!repetition) {
-                cout << "Marker detected: " << sequence[0] << sequence[1] << sequence[2] << sequence[3] << " at position " << char_id << endl;
-                break;
+                if (!repetition_package) {
+                    cout << "Package marker detected: ";
+                    for (char c : sequence_package)
+                        cout << c;
+                    cout << " at position " << char_id_package << endl;
+                    package_found = true;
+                }
+            }
+            
+            // Looking for start of message
+            if (!message_found) {
+                char_id_message++; // increment counter
+
+                sequence_message.pop_front(); // remove the oldest char
+                sequence_message.push_back(c); // insert last read character
+
+                repetition_message = false;
+
+                for (int i = 0; i < message_length; i++) {
+                    for (int j = 0; j < message_length; j++) {
+                        if (i == j)
+                            break;
+                        if (sequence_message[i] == sequence_message[j]) {
+                            repetition_message = true;
+                            break;
+                        }
+                        else {
+                            repetition_message = false;
+                        }
+                    }
+                    if (repetition_message)
+                        break;
+                }
+
+                if (!repetition_message) {
+                    cout << "Message marker detected: ";
+                    for (char c : sequence_message)
+                        cout << c;
+                    cout << " at position " << char_id_message << endl;
+                    message_found = true;
+                }
             }
         }
     }
