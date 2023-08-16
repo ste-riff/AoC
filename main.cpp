@@ -1,8 +1,9 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <deque>
+#include <list>
+#include <map>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
@@ -18,6 +19,7 @@ void day2();
 void day3();
 void day4();
 void day5();
+void day6();
 
 // Classes
 class Elf {
@@ -60,7 +62,8 @@ int main() {
     // day2();
     // day3();
     // day4();
-    day5();
+    // day5();
+    day6();
 
    return 0;
 }
@@ -471,4 +474,51 @@ void day5() {
     for (int i = 0; i < crate_stacks.size(); i++)
         cout << crate_stacks[i].front();
     cout << endl;
+}
+
+void day6() {
+    cout << "### Day 6 ###" << endl;
+
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day6.txt";
+    ifstream input_file(filename);
+    string line;
+    int char_id = 0;
+    
+    if (input_file.fail()) {
+        cout << "Unable to open the file: " << filename << endl;
+    }
+    else {
+        char c;
+        deque<char> sequence (4, ' ');
+
+        while (input_file.get(c)) {
+            char_id++; // increment counter
+
+            sequence.pop_front(); // remove the oldest char
+            sequence.push_back(c); // insert last read character
+
+            bool repetition = false;
+
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    if (i == j)
+                        break;
+                    if (sequence[i] == sequence[j]) {
+                        repetition = true;
+                        break;
+                    }
+                    else {
+                        repetition = false;
+                    }
+                }
+                if (repetition)
+                    break;
+            }
+
+            if (!repetition) {
+                cout << "Marker detected: " << sequence[0] << sequence[1] << sequence[2] << sequence[3] << " at position " << char_id << endl;
+                break;
+            }
+        }
+    }
 }
