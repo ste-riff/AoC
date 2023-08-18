@@ -20,6 +20,7 @@ void day3();
 void day4();
 void day5();
 void day6();
+void day7();
 
 // Classes
 class Elf {
@@ -53,6 +54,31 @@ class Elf {
         };
 };
 
+class FileSystemElement {
+    private:
+        string name;
+    public:
+        FileSystemElement(string element_name) : name(element_name) {}
+
+        ~FileSystemElement() {}
+};
+
+class File : public FileSystemElement {
+    private:
+        int size;
+    public:
+        File(string file_name, int file_size) : FileSystemElement(file_name), size(file_size) {}
+
+        ~File() {}
+};
+
+class Directory : public FileSystemElement {
+    public:
+        Directory(string dir_name) : FileSystemElement(dir_name) {}
+
+        ~Directory() {}
+};
+
 /************** MAIN *************/
 
 int main() {
@@ -63,7 +89,8 @@ int main() {
     // day3();
     // day4();
     // day5();
-    day6();
+    // day6();
+    day7();
 
    return 0;
 }
@@ -561,6 +588,34 @@ void day6() {
                     cout << " at position " << char_id_message << endl;
                     message_found = true;
                 }
+            }
+        }
+    }
+}
+
+void day7() {
+    cout << "### Day 7 ###" << endl;
+
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
+    ifstream input_file(filename);
+    string line;
+
+    if (input_file.fail()) {
+        cout << "Unable to open the file: " << filename << endl;
+    }
+    else {
+        list<FileSystemElement> file_system;
+        while (getline(input_file, line, '\n')) {
+            switch (line[0]) {
+            case '$':
+                cout << "Command executed" << endl;
+                break;
+            case 'd':
+                cout << "Directory listed" << endl;
+                break;
+            default:
+                cout << "File listed" << endl;
+                break;
             }
         }
     }
