@@ -13,15 +13,6 @@
 
 using namespace std;
 
-// Functions declaration
-void day1();
-void day2();
-void day3();
-void day4();
-void day5();
-void day6();
-void day7();
-
 // Classes
 class Elf {
     private:
@@ -59,6 +50,7 @@ class FileSystemElement {
         string name;
     public:
         FileSystemElement(string element_name) : name(element_name) {}
+        string getName() { return name; }
 
         ~FileSystemElement() {}
 };
@@ -79,6 +71,15 @@ class Directory : public FileSystemElement {
         ~Directory() {}
 };
 
+// Functions declaration
+void day1();
+void day2();
+void day3();
+void day4();
+void day5();
+void day6();
+void day7();
+void executeCommand(list<FileSystemElement>&, list<FileSystemElement>::iterator&, string);
 /************** MAIN *************/
 
 int main() {
@@ -605,18 +606,45 @@ void day7() {
     }
     else {
         list<FileSystemElement> file_system;
+        list<FileSystemElement>::iterator current_dir;
+
+        current_dir = file_system.begin();
+
         while (getline(input_file, line, '\n')) {
             switch (line[0]) {
             case '$':
-                cout << "Command executed" << endl;
+                // DEBUG cout << "Command executed" << endl;
+                executeCommand(file_system, current_dir, line);
                 break;
             case 'd':
-                cout << "Directory listed" << endl;
+                // DEBUG cout << "Directory listed" << endl;
                 break;
             default:
-                cout << "File listed" << endl;
+                // DEBUG cout << "File listed" << endl;
                 break;
             }
         }
     }
+}
+
+void executeCommand(list<FileSystemElement>& file_system, list<FileSystemElement>::iterator& current_dir,  string line) {
+    line.erase(0, 2); // remove "$ "
+    size_t pos = line.find_first_of(" ");
+    string command = line.substr(0, pos);
+
+    if (command == "cd") {
+        line.erase(0, 3); // remove "cd "
+        
+        if (line == "/") { // go up a level
+            // create root folder
+            Directory dir("/");
+
+            file_system.push_back(dir);
+            cout << "Directory " << dir.getName() << " created." << endl;
+     
+        }
+
+    }
+    else if (command == "ls") {}
+
 }
