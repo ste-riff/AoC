@@ -64,6 +64,8 @@ class File : public FileSystemElement {
         ~File() {}
 };
 
+// ToDo: The whole FileSystem should only consist of Directory elements.
+// Each directory element should contain a list of Files.
 class Directory : public FileSystemElement {
     public:
         Directory(string dir_name) : FileSystemElement(dir_name) {}
@@ -640,8 +642,20 @@ void executeCommand(list<FileSystemElement>& file_system, list<FileSystemElement
             Directory dir("/");
 
             file_system.push_back(dir);
+            current_dir = file_system.begin(); // assign iterator to root directory
             cout << "Directory " << dir.getName() << " created." << endl;
      
+        }
+        else if (line == "..") {
+            // mode iterator one level up
+            current_dir--;
+        }
+        else {
+            //create new directory and assign iterator to it
+            Directory dir(line);
+            file_system.push_back(dir);
+            current_dir = file_system.end();
+            --current_dir;
         }
 
     }
