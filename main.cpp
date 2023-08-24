@@ -64,9 +64,9 @@ class File : public FileSystemElement {
         ~File() {}
 };
 
-// ToDo: The whole FileSystem should only consist of Directory elements.
-// Each directory element should contain a list of Files.
 class Directory : public FileSystemElement {
+    private:
+        list<File> files;
     public:
         Directory(string dir_name) : FileSystemElement(dir_name) {}
 
@@ -82,6 +82,7 @@ void day5();
 void day6();
 void day7();
 void executeCommand(list<FileSystemElement>&, list<FileSystemElement>::iterator&, string);
+void createDirectory(list<FileSystemElement>::iterator&, string);
 /************** MAIN *************/
 
 int main() {
@@ -620,6 +621,7 @@ void day7() {
                 break;
             case 'd':
                 // DEBUG cout << "Directory listed" << endl;
+                createDirectory(current_dir, line);
                 break;
             default:
                 // DEBUG cout << "File listed" << endl;
@@ -659,6 +661,34 @@ void executeCommand(list<FileSystemElement>& file_system, list<FileSystemElement
         }
 
     }
-    else if (command == "ls") {}
+    else if (command == "ls") {
+        // do nothing
+    }
+    else {
+        cout << "Command " << command << " not recognized." << endl;
+    }
 
 }
+
+void createDirectory(list<FileSystemElement>::iterator& current_dir, string line) {
+    line.erase(0, 4); // remove "dir "
+
+}
+
+// ToDo:
+// Create enumeration ElementType (DIR and TYPE)
+// Add type to FileSystemElement
+// Change list to vector
+
+
+// origin                       vector<FileSystemElement>[1]
+//  |
+//   -- /                       name="/", type=DIR, content=vector<FileSystemElement>[4]
+//      |
+//       -- a                   name="a", type=DIR, content=vector<FileSystemElement>[0]
+//       -- b                   name="b", type=DIR, content=vector<FileSystemElement>[2]
+//          |
+//           -- fileb1.txt      name="fileb1.txt", type=FILE, no_content
+//           -- fileb2.txt      name="fileb2.txt", type=FILE, no_content
+//       -- file1.txt           name="file1.txt", type=FILE, no_content
+//       -- file2.txt           name="file2.txt", type=FILE, no_content
