@@ -45,32 +45,19 @@ class Elf {
         };
 };
 
-class FileSystemElement {
-    private:
-        string name;
-    public:
-        FileSystemElement(string element_name) : name(element_name) {}
-        string getName() { return name; }
+class Directory {
+private:
+    string name;
+    int total_size = 0;
+public:
+    Directory* parent = NULL;
+    Directory* child = NULL;
+    Directory(string dir_name) : name(dir_name) {}
+    ~Directory() {}
 
-        ~FileSystemElement() {}
-};
-
-class File : public FileSystemElement {
-    private:
-        int size;
-    public:
-        File(string file_name, int file_size) : FileSystemElement(file_name), size(file_size) {}
-
-        ~File() {}
-};
-
-class Directory : public FileSystemElement {
-    private:
-        list<File> files;
-    public:
-        Directory(string dir_name) : FileSystemElement(dir_name) {}
-
-        ~Directory() {}
+    string getName() { return name; };
+    int getSize() { return total_size; };
+    void updateSize(int size) { total_size += size; };
 };
 
 // Functions declaration
@@ -81,8 +68,8 @@ void day4();
 void day5();
 void day6();
 void day7();
-void executeCommand(list<FileSystemElement>&, list<FileSystemElement>::iterator&, string);
-void createDirectory(list<FileSystemElement>::iterator&, string);
+void executeCommand(unordered_map<string, Directory>&, Directory*, string);
+void storeFiles(unordered_map<string, int>&, string&, string);
 /************** MAIN *************/
 
 int main() {
@@ -594,13 +581,13 @@ void day6() {
                 }
             }
         }
-    }
-}
+    }}
 
 void day7() {
     cout << "### Day 7 ###" << endl;
 
-    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
+    // const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
     ifstream input_file(filename);
     string line;
 
@@ -608,56 +595,61 @@ void day7() {
         cout << "Unable to open the file: " << filename << endl;
     }
     else {
-        list<FileSystemElement> file_system;
-        list<FileSystemElement>::iterator current_dir;
-
-        current_dir = file_system.begin();
+        int total_size = 0;
+        Directory* current_dir = NULL;
+        unordered_map<string, Directory> directories;
 
         while (getline(input_file, line, '\n')) {
             switch (line[0]) {
             case '$':
                 // DEBUG cout << "Command executed" << endl;
-                executeCommand(file_system, current_dir, line);
+                executeCommand(directories, current_dir, line);
                 break;
             case 'd':
                 // DEBUG cout << "Directory listed" << endl;
-                createDirectory(current_dir, line);
+                // do nothing
                 break;
             default:
                 // DEBUG cout << "File listed" << endl;
+                //storeFiles(directories, current_dir, line);
                 break;
             }
         }
+
+        // Iterate through map
+        for (auto it : directories) {
+            if (it.second.getSize() <= 100000)
+                total_size += it.second.getSize();
+        }
+
+        cout << "Total size = " << total_size << endl;
     }
 }
 
-void executeCommand(list<FileSystemElement>& file_system, list<FileSystemElement>::iterator& current_dir,  string line) {
+void executeCommand(unordered_map<string, int>& directories, Directory* current_dir,  string line) {
     line.erase(0, 2); // remove "$ "
     size_t pos = line.find_first_of(" ");
     string command = line.substr(0, pos);
 
     if (command == "cd") {
         line.erase(0, 3); // remove "cd "
-        
-        if (line == "/") { // go up a level
-            // create root folder
-            Directory dir("/");
 
-            file_system.push_back(dir);
-            current_dir = file_system.begin(); // assign iterator to root directory
-            cout << "Directory " << dir.getName() << " created." << endl;
-     
-        }
-        else if (line == "..") {
-            // mode iterator one level up
-            current_dir--;
+        if (line == "..") { 
+            // ignore, do not create new directory with this name
         }
         else {
-            //create new directory and assign iterator to it
-            Directory dir(line);
-            file_system.push_back(dir);
-            current_dir = file_system.end();
-            --current_dir;
+            Directory child(line);
+            if (current_dir) {
+                // if current_dir != NULL, there is a directory already created to point to
+                current_dir->child = &child;
+                child.parent = current_dir;
+            }
+            else {
+                // if current_dir == NULL then we are allocating the first directory and we cannot point to anything yet
+            }          
+            current_dir = &child;
+
+            directories.insert({ line, *current_dir });
         }
 
     }
@@ -670,25 +662,54 @@ void executeCommand(list<FileSystemElement>& file_system, list<FileSystemElement
 
 }
 
-void createDirectory(list<FileSystemElement>::iterator& current_dir, string line) {
-    line.erase(0, 4); // remove "dir "
+void storeFiles(unordered_map<string, int>& directories, string& current_dir, string line) {
+    size_t pos = line.find_first_of(" ");
+    string size = line.substr(0, pos);
 
+    directories[current_dir] += stoi(size);
+
+    cout << "Size of " << current_dir << " increased with " << size << endl;
 }
 
 // ToDo:
-// Create enumeration ElementType (DIR and TYPE)
-// Add type to FileSystemElement
-// Change list to vector
+// I don't have to reproduce the tree, I can just allocate new directories as they are listed and calculate their size.
+// Store stuff in vector, with (name, size) tuple.
+// 
+// 1) parse the input line, 
+// 2) if it's cd, update current_dir, create new data entry (name, size) in the vector
+// 3) if it's ls, prepare for parsing sizes (do nothing)
+// 4) if it's a number, add it to the new data entry.
+// 5) When the whole file's been parsed, find the directories with over 100000 in size
 
-
-// origin                       vector<FileSystemElement>[1]
-//  |
-//   -- /                       name="/", type=DIR, content=vector<FileSystemElement>[4]
-//      |
-//       -- a                   name="a", type=DIR, content=vector<FileSystemElement>[0]
-//       -- b                   name="b", type=DIR, content=vector<FileSystemElement>[2]
-//          |
-//           -- fileb1.txt      name="fileb1.txt", type=FILE, no_content
-//           -- fileb2.txt      name="fileb2.txt", type=FILE, no_content
-//       -- file1.txt           name="file1.txt", type=FILE, no_content
-//       -- file2.txt           name="file2.txt", type=FILE, no_content
+// class Directory {
+//      private:
+//          string name;
+//          int total_size = 0;
+//          Directory* parent = NULL;
+//          Directory* child = NULL;
+// }
+// 
+// ...
+// 
+// if(cmd == "cd <dir>") {
+//      Directory child(<dir>);
+//      current_dir->child = child;
+//      child->parent = current_dir;
+//      current_dir = child;
+// }
+// 
+// ...
+// 
+// if(cmd == "cd ..") {
+//      current_dir = current_dir->parent
+// }
+// 
+// ...
+// 
+// if(line is a filesize) {
+//      current_dir->total_size += filesize;
+//      if(current_dir->parent != NULL) {
+//          current_dir->parent->total_size += filesize;
+//      }  
+// }
+//
