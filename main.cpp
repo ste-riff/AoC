@@ -68,8 +68,8 @@ void day4();
 void day5();
 void day6();
 void day7();
-void executeCommand(unordered_map<string, Directory>&, Directory*, string);
-void storeFiles(unordered_map<string, int>&, string&, string);
+void executeCommand(unordered_map<string, Directory>&, Directory*&, string);
+void storeFiles(unordered_map<string, Directory>&, Directory*&, string);
 /************** MAIN *************/
 
 int main() {
@@ -611,22 +611,23 @@ void day7() {
                 break;
             default:
                 // DEBUG cout << "File listed" << endl;
-                //storeFiles(directories, current_dir, line);
+                storeFiles(directories, current_dir, line);
                 break;
             }
         }
 
         // Iterate through map
         for (auto it : directories) {
-            if (it.second.getSize() <= 100000)
+            if (it.second.getSize() <= 100000) {
                 total_size += it.second.getSize();
+            }
         }
 
         cout << "Total size = " << total_size << endl;
     }
 }
 
-void executeCommand(unordered_map<string, int>& directories, Directory* current_dir,  string line) {
+void executeCommand(unordered_map<string, Directory>& directories, Directory*& current_dir,  string line) {
     line.erase(0, 2); // remove "$ "
     size_t pos = line.find_first_of(" ");
     string command = line.substr(0, pos);
@@ -641,15 +642,21 @@ void executeCommand(unordered_map<string, int>& directories, Directory* current_
             Directory child(line);
             if (current_dir) {
                 // if current_dir != NULL, there is a directory already created to point to
-                current_dir->child = &child;
                 child.parent = current_dir;
+            }      
+            
+            directories.insert({ line, child });
+            if (current_dir) {
+                // if current_dir != NULL, there is a directory already created to point to
+                current_dir->child = &directories.at(line);
             }
-            else {
-                // if current_dir == NULL then we are allocating the first directory and we cannot point to anything yet
-            }          
-            current_dir = &child;
+            current_dir = &(directories.at(line));
 
-            directories.insert({ line, *current_dir });
+            cout << "Directory " << child.getName() << " created";
+            if (child.parent)
+                cout << ", with parent " << child.parent->getName() << endl;
+            else
+                cout << endl;
         }
 
     }
@@ -662,54 +669,16 @@ void executeCommand(unordered_map<string, int>& directories, Directory* current_
 
 }
 
-void storeFiles(unordered_map<string, int>& directories, string& current_dir, string line) {
+void storeFiles(unordered_map<string, Directory>& directories, Directory*& current_dir, string line) {
     size_t pos = line.find_first_of(" ");
     string size = line.substr(0, pos);
 
-    directories[current_dir] += stoi(size);
+    directories.at(current_dir->getName()).updateSize(stoi(size));
 
-    cout << "Size of " << current_dir << " increased with " << size << endl;
+    cout << "Size of " << current_dir->getName() << " increased with " << size << endl;
 }
 
 // ToDo:
-// I don't have to reproduce the tree, I can just allocate new directories as they are listed and calculate their size.
-// Store stuff in vector, with (name, size) tuple.
-// 
-// 1) parse the input line, 
-// 2) if it's cd, update current_dir, create new data entry (name, size) in the vector
-// 3) if it's ls, prepare for parsing sizes (do nothing)
-// 4) if it's a number, add it to the new data entry.
-// 5) When the whole file's been parsed, find the directories with over 100000 in size
-
-// class Directory {
-//      private:
-//          string name;
-//          int total_size = 0;
-//          Directory* parent = NULL;
-//          Directory* child = NULL;
-// }
-// 
-// ...
-// 
-// if(cmd == "cd <dir>") {
-//      Directory child(<dir>);
-//      current_dir->child = child;
-//      child->parent = current_dir;
-//      current_dir = child;
-// }
-// 
-// ...
-// 
-// if(cmd == "cd ..") {
-//      current_dir = current_dir->parent
-// }
-// 
-// ...
-// 
-// if(line is a filesize) {
-//      current_dir->total_size += filesize;
-//      if(current_dir->parent != NULL) {
-//          current_dir->parent->total_size += filesize;
-//      }  
-// }
-//
+// 1) Update the code so that a parent can have multiple children
+// 2.a) Traverse the map in another way. Either by going from pointer to pointer (from root to leaves), or by checking if a directory contains subdirectories.
+// 2.b) Or store the size of each directory as an attribute of the directory
