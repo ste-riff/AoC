@@ -49,15 +49,29 @@ class Directory {
 private:
     string name;
     int total_size = 0;
+    vector<tuple<string, int>> files;
 public:
     Directory* parent = NULL;
-    Directory* child = NULL;
+    vector<Directory*> children;
     Directory(string dir_name) : name(dir_name) {}
     ~Directory() {}
 
     string getName() { return name; };
     int getSize() { return total_size; };
     void updateSize(int size) { total_size += size; };
+    void addFile(string name, int size) {
+        tuple<string, int> new_file(name, size);
+        files.push_back(new_file);
+    };
+    int getFilesSize() {
+        int total_file_size = 0;
+
+        for (tuple<string, int> it : files) {
+            total_file_size += get<1>(it);
+        }
+
+        return total_file_size;
+    };
 };
 
 // Functions declaration
@@ -69,7 +83,8 @@ void day5();
 void day6();
 void day7();
 void executeCommand(unordered_map<string, Directory>&, Directory*&, string);
-void storeFiles(unordered_map<string, Directory>&, Directory*&, string);
+void storeFile(unordered_map<string, Directory>&, Directory*&, string);
+void calculateTotalDirSize(unordered_map<string, Directory>&, string&);
 /************** MAIN *************/
 
 int main() {
@@ -586,8 +601,8 @@ void day6() {
 void day7() {
     cout << "### Day 7 ###" << endl;
 
-    // const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
-    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
+    // const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
     ifstream input_file(filename);
     string line;
 
@@ -611,10 +626,13 @@ void day7() {
                 break;
             default:
                 // DEBUG cout << "File listed" << endl;
-                storeFiles(directories, current_dir, line);
+                storeFile(directories, current_dir, line);
                 break;
             }
         }
+
+        string start_dir = "/";
+        calculateTotalDirSize(directories, start_dir);
 
         // Iterate through map
         for (auto it : directories) {
@@ -636,7 +654,9 @@ void executeCommand(unordered_map<string, Directory>& directories, Directory*& c
         line.erase(0, 3); // remove "cd "
 
         if (line == "..") { 
-            // ignore, do not create new directory with this name
+            // move current_dir up a level
+            cout << "Up a level" << endl;
+            current_dir = &(directories.at(current_dir->parent->getName()));
         }
         else {
             Directory child(line);
@@ -648,7 +668,7 @@ void executeCommand(unordered_map<string, Directory>& directories, Directory*& c
             directories.insert({ line, child });
             if (current_dir) {
                 // if current_dir != NULL, there is a directory already created to point to
-                current_dir->child = &directories.at(line);
+                current_dir->children.push_back(&directories.at(line));
             }
             current_dir = &(directories.at(line));
 
@@ -669,16 +689,36 @@ void executeCommand(unordered_map<string, Directory>& directories, Directory*& c
 
 }
 
-void storeFiles(unordered_map<string, Directory>& directories, Directory*& current_dir, string line) {
+void storeFile(unordered_map<string, Directory>& directories, Directory*& current_dir, string line) {
     size_t pos = line.find_first_of(" ");
     string size = line.substr(0, pos);
+    size_t pos1 = line.length();
+    string name = line.substr(pos+1, pos1);
 
-    directories.at(current_dir->getName()).updateSize(stoi(size));
+    directories.at(current_dir->getName()).addFile(name, stoi(size));
 
-    cout << "Size of " << current_dir->getName() << " increased with " << size << endl;
+    cout << "File " << name << " with size " << size << " stored." << endl;
 }
 
-// ToDo:
-// 1) Update the code so that a parent can have multiple children
-// 2.a) Traverse the map in another way. Either by going from pointer to pointer (from root to leaves), or by checking if a directory contains subdirectories.
-// 2.b) Or store the size of each directory as an attribute of the directory
+void calculateTotalDirSize(unordered_map<string, Directory>& directories, string& current_dir_name) {
+    // check that the directory has children
+    if (directories.at(current_dir_name).children.empty()) {
+        int directory_size = 0;
+
+        // add the size of each file to the directory
+        directory_size = directories.at(current_dir_name).getFilesSize();
+        directories.at(current_dir_name).updateSize(directory_size);
+    }
+    else {
+        int directory_size = 0;
+        // call this function again on each child
+        vector<Directory*> children = directories.at(current_dir_name).children;
+        for (Directory* it : children) {
+            calculateTotalDirSize(directories, it->getName());
+
+            directories.at(current_dir_name).updateSize(it->getSize());
+        }
+        directory_size = directories.at(current_dir_name).getFilesSize();
+        directories.at(current_dir_name).updateSize(directory_size);
+    }
+}
