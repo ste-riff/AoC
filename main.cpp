@@ -1,4 +1,5 @@
 #include <algorithm>
+using std::find_if;
 #include <fstream>
 #include <iostream>
 #include <deque>
@@ -49,24 +50,23 @@ class Directory {
 private:
     string name;
     int total_size = 0;
-    vector<tuple<string, int>> files;
+    map<string, int> files;
 public:
     Directory* parent = NULL;
-    vector<Directory*> children;
+    list<Directory> children;
     Directory(string dir_name) : name(dir_name) {}
     ~Directory() {}
 
     string getName() { return name; };
     int getSize() { return total_size; };
     void updateSize(int size) { total_size += size; };
-    void addFile(string name, int size) {
-        tuple<string, int> new_file(name, size);
-        files.push_back(new_file);
+    void addFile(string filename, int file_size) {
+        files.insert({ filename, file_size });
     };
     int getFilesSize() {
         int total_file_size = 0;
 
-        for (tuple<string, int> it : files) {
+        for (auto it : files) {
             total_file_size += get<1>(it);
         }
 
@@ -82,9 +82,9 @@ void day4();
 void day5();
 void day6();
 void day7();
-void executeCommand(unordered_map<string, Directory>&, Directory*&, string);
-void storeFile(unordered_map<string, Directory>&, Directory*&, string);
-void calculateTotalDirSize(unordered_map<string, Directory>&, string&);
+
+void executeCommand(list<Directory>, Directory*, string);
+
 /************** MAIN *************/
 
 int main() {
@@ -601,8 +601,8 @@ void day6() {
 void day7() {
     cout << "### Day 7 ###" << endl;
 
-    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
-    // const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
+    //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
     ifstream input_file(filename);
     string line;
 
@@ -612,113 +612,62 @@ void day7() {
     else {
         int total_size = 0;
         Directory* current_dir = NULL;
-        unordered_map<string, Directory> directories;
+        list<Directory> filesystem;
+
+        Directory root("/");
+        filesystem.push_back(root);
 
         while (getline(input_file, line, '\n')) {
             switch (line[0]) {
             case '$':
-                // DEBUG cout << "Command executed" << endl;
-                executeCommand(directories, current_dir, line);
+                cout << "Command executed: " << line << endl;
+                executeCommand(filesystem, current_dir, line);
                 break;
             case 'd':
-                // DEBUG cout << "Directory listed" << endl;
+                cout << "Directory listed: " << line << endl;
                 // do nothing
                 break;
             default:
-                // DEBUG cout << "File listed" << endl;
-                storeFile(directories, current_dir, line);
+                cout << "File listed: " << line << endl;
+                //storeFile(directories, current_dir, line);
                 break;
             }
         }
 
-        string start_dir = "/";
-        calculateTotalDirSize(directories, start_dir);
+        //Directory root = directories.at("/");
+        //current_dir = &root;
 
-        // Iterate through map
-        for (auto it : directories) {
-            if (it.second.getSize() <= 100000) {
-                total_size += it.second.getSize();
-            }
-        }
+        //calculateTotalDirSize(directories, current_dir);
 
-        cout << "Total size = " << total_size << endl;
+        //// Iterate through map
+        //for (auto it : directories) {
+        //    if (it.second.getSize() <= 100000) {
+        //        total_size += it.second.getSize();
+        //    }
+        //}
+
+        //cout << "Total size = " << total_size << endl;
     }
 }
 
-void executeCommand(unordered_map<string, Directory>& directories, Directory*& current_dir,  string line) {
-    line.erase(0, 2); // remove "$ "
-    size_t pos = line.find_first_of(" ");
-    string command = line.substr(0, pos);
-
-    if (command == "cd") {
-        line.erase(0, 3); // remove "cd "
-
-        if (line == "..") { 
-            // move current_dir up a level
-            cout << "Up a level" << endl;
-            current_dir = &(directories.at(current_dir->parent->getName()));
-        }
-        else {
-            Directory child(line);
-            if (current_dir) {
-                // if current_dir != NULL, there is a directory already created to point to
-                child.parent = current_dir;
-            }      
-            
-            directories.insert({ line, child });
-            if (current_dir) {
-                // if current_dir != NULL, there is a directory already created to point to
-                current_dir->children.push_back(&directories.at(line));
-            }
-            current_dir = &(directories.at(line));
-
-            cout << "Directory " << child.getName() << " created";
-            if (child.parent)
-                cout << ", with parent " << child.parent->getName() << endl;
-            else
-                cout << endl;
-        }
-
+void executeCommand(list<Directory> filesystem, Directory* current_dir_ptr, string line) {
+    if (line.substr(2, 2).compare("cd") == 0) {
+        // extract dirname from line
+        string dirname = line.substr(5, std::string::npos);
+        // create lambda to find right directory
+        auto findDir = [dirname](Directory dir) {return dir.getName().compare(dirname) == 0; };
+        // find subdir with specified name and return iterator
+        list<Directory>::iterator it = find_if(current_dir_ptr->children.begin(), current_dir_ptr->children.end(), findDir);
+        // point current_dir to found folder
+        current_dir_ptr = &(*it);
     }
-    else if (command == "ls") {
-        // do nothing
+    else if (line.substr(2, 2).compare("ls") == 0) {
     }
-    else {
-        cout << "Command " << command << " not recognized." << endl;
-    }
-
+    else
+        std::cout << "Command not recognized" << std::endl;
 }
 
-void storeFile(unordered_map<string, Directory>& directories, Directory*& current_dir, string line) {
-    size_t pos = line.find_first_of(" ");
-    string size = line.substr(0, pos);
-    size_t pos1 = line.length();
-    string name = line.substr(pos+1, pos1);
-
-    directories.at(current_dir->getName()).addFile(name, stoi(size));
-
-    cout << "File " << name << " with size " << size << " stored." << endl;
-}
-
-void calculateTotalDirSize(unordered_map<string, Directory>& directories, string& current_dir_name) {
-    // check that the directory has children
-    if (directories.at(current_dir_name).children.empty()) {
-        int directory_size = 0;
-
-        // add the size of each file to the directory
-        directory_size = directories.at(current_dir_name).getFilesSize();
-        directories.at(current_dir_name).updateSize(directory_size);
-    }
-    else {
-        int directory_size = 0;
-        // call this function again on each child
-        vector<Directory*> children = directories.at(current_dir_name).children;
-        for (Directory* it : children) {
-            calculateTotalDirSize(directories, it->getName());
-
-            directories.at(current_dir_name).updateSize(it->getSize());
-        }
-        directory_size = directories.at(current_dir_name).getFilesSize();
-        directories.at(current_dir_name).updateSize(directory_size);
-    }
-}
+// ToDo
+// Rewrite application. Use lists for folders and vectors for files.
+// Create "/" at the beginning and use cd only to change current_dir.
+// Use ls to create files and directories.
