@@ -9,6 +9,7 @@ using std::find_if;
 #include <stack>
 #include <stdexcept>
 #include <string>
+using std::stoi;
 #include <unordered_map>
 #include <vector>
 
@@ -53,7 +54,7 @@ private:
     map<string, int> files;
 public:
     Directory* parent = NULL;
-    list<Directory> children;
+    list<Directory> children = {};
     Directory(string dir_name) : name(dir_name) {}
     ~Directory() {}
 
@@ -72,6 +73,7 @@ public:
 
         return total_file_size;
     };
+    map<string, int> getFiles() { return files; };
 };
 
 // Functions declaration
@@ -83,7 +85,9 @@ void day5();
 void day6();
 void day7();
 
-void executeCommand(list<Directory>, Directory*, string);
+void executeCommand(Directory*, string);
+void createDirectory(Directory*, string);
+void createFile(Directory*, string);
 
 /************** MAIN *************/
 
@@ -601,8 +605,8 @@ void day6() {
 void day7() {
     cout << "### Day 7 ###" << endl;
 
-    //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
-    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day7.txt";
+    //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
     ifstream input_file(filename);
     string line;
 
@@ -611,63 +615,100 @@ void day7() {
     }
     else {
         int total_size = 0;
-        Directory* current_dir = NULL;
+        Directory* current_dir_ptr = NULL;
         list<Directory> filesystem;
 
         Directory root("/");
         filesystem.push_back(root);
+        current_dir_ptr = &(*filesystem.begin());
 
         while (getline(input_file, line, '\n')) {
             switch (line[0]) {
             case '$':
                 cout << "Command executed: " << line << endl;
-                executeCommand(filesystem, current_dir, line);
+                executeCommand(current_dir_ptr, line);
                 break;
             case 'd':
                 cout << "Directory listed: " << line << endl;
-                // do nothing
+                createDirectory(current_dir_ptr, line);
                 break;
             default:
                 cout << "File listed: " << line << endl;
-                //storeFile(directories, current_dir, line);
+                createFile(current_dir_ptr, line);
                 break;
             }
         }
-
-        //Directory root = directories.at("/");
-        //current_dir = &root;
-
-        //calculateTotalDirSize(directories, current_dir);
-
-        //// Iterate through map
-        //for (auto it : directories) {
-        //    if (it.second.getSize() <= 100000) {
-        //        total_size += it.second.getSize();
-        //    }
-        //}
-
-        //cout << "Total size = " << total_size << endl;
+        // calculate total size for each folder
     }
 }
 
-void executeCommand(list<Directory> filesystem, Directory* current_dir_ptr, string line) {
+void executeCommand(Directory* current_dir_ptr, string line) {
     if (line.substr(2, 2).compare("cd") == 0) {
         // extract dirname from line
         string dirname = line.substr(5, std::string::npos);
-        // create lambda to find right directory
-        auto findDir = [dirname](Directory dir) {return dir.getName().compare(dirname) == 0; };
-        // find subdir with specified name and return iterator
-        list<Directory>::iterator it = find_if(current_dir_ptr->children.begin(), current_dir_ptr->children.end(), findDir);
-        // point current_dir to found folder
-        current_dir_ptr = &(*it);
+        // check whether it's a proper directory name or ..
+        if (dirname.compare("..") == 0) {
+            // move up a level
+            current_dir_ptr = current_dir_ptr->parent;
+        }
+        else if (dirname.compare("/") == 0) {
+            // root folder is a special case, do nothing
+        }
+        else {
+            // create lambda to find right directory
+            auto findDir = [dirname](Directory dir) {return dir.getName().compare(dirname) == 0; };
+            // find subdir with specified name and return iterator
+            list<Directory>::iterator it = find_if(current_dir_ptr->children.begin(), current_dir_ptr->children.end(), findDir);
+            // point current_dir to found folder
+            current_dir_ptr = &(*it);
+        }
     }
     else if (line.substr(2, 2).compare("ls") == 0) {
+        // do nothing
     }
     else
         std::cout << "Command not recognized" << std::endl;
 }
 
-// ToDo
-// Rewrite application. Use lists for folders and vectors for files.
-// Create "/" at the beginning and use cd only to change current_dir.
-// Use ls to create files and directories.
+void createDirectory(Directory* current_dir_ptr, string line) {
+    // extract dirname from line
+    string dirname = line.substr(4, std::string::npos);
+
+    // check whether there already is such directory created
+    // create lambda to find  directory
+    auto findDir = [dirname](Directory dir) {return dir.getName().compare(dirname) == 0; };
+    // find subdir with specified name and return iterator
+    list<Directory>::iterator it = find_if(current_dir_ptr->children.begin(), current_dir_ptr->children.end(), findDir);
+
+    if (it == current_dir_ptr->children.end()) {
+        // no such directory found, create it
+        Directory dir(dirname);
+        current_dir_ptr->children.push_back(dir);
+    }
+    else {
+        // do nothing
+    }
+}
+
+void createFile(Directory* current_dir_ptr, string line) {
+    // extract filename and filesize from line
+    std::size_t space = line.find(" ");
+    string filename = line.substr(space, std::string::npos);
+    int filesize = stoi(line.substr(0, space));
+
+    // check whether there is already such file created
+    // create lambda to find file
+    auto files = current_dir_ptr->getFiles();
+    auto findFile = [filename](std::pair<string, int> file) {return filename.compare(get<0>(file)) == 0; };
+    // find subdir with specified name and return iterator
+    map<string, int>::iterator it = find_if(files.begin(), files.end(), findFile);
+
+    if (it == files.end()) {
+        // no such file was found, add it
+        current_dir_ptr->addFile(filename, filesize);
+    }
+    else {
+        // do nothing
+    }
+    
+}
