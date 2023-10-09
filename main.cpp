@@ -63,6 +63,7 @@ public:
     void updateSize(int size) { total_size += size; };
     void addFile(string filename, int file_size) {
         files.insert({ filename, file_size });
+        total_size += file_size;
     };
     int getFilesSize() {
         int total_file_size = 0;
@@ -85,9 +86,11 @@ void day5();
 void day6();
 void day7();
 
-void executeCommand(Directory*, string);
-void createDirectory(Directory*, string);
-void createFile(Directory*, string);
+void executeCommand(Directory*&, string);
+void createDirectory(Directory*&, string);
+void createFile(Directory*&, string);
+void updateParentDirectorySize(Directory*&, int);
+void calculateTotalSize(int&, Directory*&);
 
 /************** MAIN *************/
 
@@ -615,8 +618,9 @@ void day7() {
     }
     else {
         int total_size = 0;
-        Directory* current_dir_ptr = NULL;
+        Directory* current_dir_ptr = nullptr;
         list<Directory> filesystem;
+        int total_size_sum = 0;
 
         Directory root("/");
         filesystem.push_back(root);
@@ -625,24 +629,31 @@ void day7() {
         while (getline(input_file, line, '\n')) {
             switch (line[0]) {
             case '$':
-                cout << "Command executed: " << line << endl;
+                //cout << "Command executed: " << line << endl;
                 executeCommand(current_dir_ptr, line);
                 break;
             case 'd':
-                cout << "Directory listed: " << line << endl;
+                //cout << "Directory listed: " << line << endl;
                 createDirectory(current_dir_ptr, line);
                 break;
             default:
-                cout << "File listed: " << line << endl;
+                // cout << "File listed: " << line << endl;
                 createFile(current_dir_ptr, line);
                 break;
             }
         }
+
+        // all filesystem created, now move through it and find directories with correct size
+        current_dir_ptr = &(*filesystem.begin());
+        calculateTotalSize(total_size_sum, current_dir_ptr);
+
+        std::cout << "Total size: " << total_size_sum << std::endl;
         // calculate total size for each folder
+
     }
 }
 
-void executeCommand(Directory* current_dir_ptr, string line) {
+void executeCommand(Directory*& current_dir_ptr, string line) {
     if (line.substr(2, 2).compare("cd") == 0) {
         // extract dirname from line
         string dirname = line.substr(5, std::string::npos);
@@ -670,7 +681,7 @@ void executeCommand(Directory* current_dir_ptr, string line) {
         std::cout << "Command not recognized" << std::endl;
 }
 
-void createDirectory(Directory* current_dir_ptr, string line) {
+void createDirectory(Directory*& current_dir_ptr, string line) {
     // extract dirname from line
     string dirname = line.substr(4, std::string::npos);
 
@@ -683,6 +694,7 @@ void createDirectory(Directory* current_dir_ptr, string line) {
     if (it == current_dir_ptr->children.end()) {
         // no such directory found, create it
         Directory dir(dirname);
+        dir.parent = current_dir_ptr;
         current_dir_ptr->children.push_back(dir);
     }
     else {
@@ -690,7 +702,7 @@ void createDirectory(Directory* current_dir_ptr, string line) {
     }
 }
 
-void createFile(Directory* current_dir_ptr, string line) {
+void createFile(Directory*& current_dir_ptr, string line) {
     // extract filename and filesize from line
     std::size_t space = line.find(" ");
     string filename = line.substr(space, std::string::npos);
@@ -706,9 +718,33 @@ void createFile(Directory* current_dir_ptr, string line) {
     if (it == files.end()) {
         // no such file was found, add it
         current_dir_ptr->addFile(filename, filesize);
+        // update the size of the containing tree of directories, until current_dir_ptr->parent == nullptr
+        // maybe use a copy to current_dir_ptr to not loose the current pointed directory
+        Directory* parentDir = current_dir_ptr->parent;
+        updateParentDirectorySize(parentDir, filesize);
     }
     else {
         // do nothing
     }
     
+}
+
+void updateParentDirectorySize(Directory*& parent_dir_ptr, int filesize) {
+    if (parent_dir_ptr != nullptr) {
+        parent_dir_ptr->updateSize(filesize);
+        updateParentDirectorySize(parent_dir_ptr->parent, filesize);
+    }
+}
+
+void calculateTotalSize(int& total_size_sum, Directory*& current_dir_ptr) {
+    if(current_dir_ptr->getSize() <= 100'000)
+        total_size_sum += current_dir_ptr->getSize();
+
+    if (!current_dir_ptr->children.empty()) {
+        Directory* ptr;
+        for (auto it : current_dir_ptr->children) {
+            ptr = &it;
+            calculateTotalSize(total_size_sum, ptr);
+        }
+    }
 }
