@@ -91,6 +91,7 @@ void createDirectory(Directory*&, string);
 void createFile(Directory*&, string);
 void updateParentDirectorySize(Directory*&, int);
 void calculateTotalSize(int&, Directory*&);
+void findDirToDelete(Directory*&, int&, int);
 
 /************** MAIN *************/
 
@@ -612,6 +613,8 @@ void day7() {
     //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
     ifstream input_file(filename);
     string line;
+    const int total_disk_space = 70'000'000;
+    const int space_needed = 30'000'000;
 
     if (input_file.fail()) {
         cout << "Unable to open the file: " << filename << endl;
@@ -648,7 +651,18 @@ void day7() {
         calculateTotalSize(total_size_sum, current_dir_ptr);
 
         std::cout << "Total size: " << total_size_sum << std::endl;
-        // calculate total size for each folder
+        
+        // calculate total available space
+        int available_space = total_disk_space - filesystem.begin()->getSize();
+        int space_to_free = space_needed - available_space;
+        int size_to_delete = total_disk_space;
+
+        current_dir_ptr = &(*filesystem.begin());
+        findDirToDelete(current_dir_ptr, size_to_delete, space_to_free);
+
+        std::cout << "Dir to delete: size: " << size_to_delete << std::endl;
+
+        std::cout << "Done!" << std::endl;
 
     }
 }
@@ -746,5 +760,18 @@ void calculateTotalSize(int& total_size_sum, Directory*& current_dir_ptr) {
             ptr = &it;
             calculateTotalSize(total_size_sum, ptr);
         }
+    }
+}
+
+void findDirToDelete(Directory*& current_dir_ptr, int& size_to_delete, int space_to_free) {
+    
+    if (current_dir_ptr->getSize() >= space_to_free &&
+         current_dir_ptr->getSize() < size_to_delete) {
+        size_to_delete = current_dir_ptr->getSize();
+    }
+    Directory* ptr = nullptr;
+    for (auto it : current_dir_ptr->children) {
+        ptr = &it;
+        findDirToDelete(ptr, size_to_delete, space_to_free);
     }
 }
