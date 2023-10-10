@@ -32,67 +32,13 @@ using std::pair;
 #include <vector>
 using std::vector;
 
-// Classes
-class Elf {
-    private:
-        int total_calories;
-        vector<int> food;
-    public:
-        Elf() {
-            total_calories = 0;
-        }
-
-        ~Elf() {
-        }
-
-        bool operator > (const Elf& a) const {
-            return total_calories > a.getTotalCalories();
-        };
-
-        int getTotalCalories() const {
-            return total_calories;
-        };
-
-        void addFood(int calories) {
-            food.push_back(calories);
-            total_calories += calories;
-        }
-
-        void Reset() {
-            total_calories = 0;
-            food.clear();
-        };
-};
-
-class Directory {
-private:
-    string name;
-    int total_size = 0;
-    map<string, int> files;
-public:
-    Directory* parent = NULL;
-    list<Directory> children = {};
-    Directory(string dir_name) : name(dir_name) {}
-    ~Directory() {}
-
-    string getName() { return name; };
-    int getSize() { return total_size; };
-    void updateSize(int size) { total_size += size; };
-    void addFile(string filename, int file_size) {
-        files.insert({ filename, file_size });
-        total_size += file_size;
-    };
-    int getFilesSize() {
-        int total_file_size = 0;
-
-        for (auto it : files) {
-            total_file_size += get<1>(it);
-        }
-
-        return total_file_size;
-    };
-    map<string, int> getFiles() { return files; };
-};
+#include "Directory.hpp"
+using AoC22::Directory;
+using AoC22::executeCommand;
+using AoC22::createDirectory;
+using AoC22::findDirToDelete;
+#include "Elf.hpp"
+using AoC22::Elf;
 
 // Functions declaration
 void day1();
@@ -102,13 +48,6 @@ void day4();
 void day5();
 void day6();
 void day7();
-
-void executeCommand(Directory*&, string);
-void createDirectory(Directory*&, string);
-void createFile(Directory*&, string);
-void updateParentDirectorySize(Directory*&, int);
-void calculateTotalSize(int&, Directory*&);
-void findDirToDelete(Directory*&, int&, int);
 
 /************** MAIN *************/
 
@@ -681,114 +620,5 @@ void day7() {
 
         cout << "Done!" << endl;
 
-    }
-}
-
-void executeCommand(Directory*& current_dir_ptr, string line) {
-    if (line.substr(2, 2).compare("cd") == 0) {
-        // extract dirname from line
-        string dirname = line.substr(5, string::npos);
-        // check whether it's a proper directory name or ..
-        if (dirname.compare("..") == 0) {
-            // move up a level
-            current_dir_ptr = current_dir_ptr->parent;
-        }
-        else if (dirname.compare("/") == 0) {
-            // root folder is a special case, do nothing
-        }
-        else {
-            // create lambda to find right directory
-            auto findDir = [dirname](Directory dir) {return dir.getName().compare(dirname) == 0; };
-            // find subdir with specified name and return iterator
-            list<Directory>::iterator it = find_if(current_dir_ptr->children.begin(), current_dir_ptr->children.end(), findDir);
-            // point current_dir to found folder
-            current_dir_ptr = &(*it);
-        }
-    }
-    else if (line.substr(2, 2).compare("ls") == 0) {
-        // do nothing
-    }
-    else
-        cout << "Command not recognized" << endl;
-}
-
-void createDirectory(Directory*& current_dir_ptr, string line) {
-    // extract dirname from line
-    string dirname = line.substr(4, string::npos);
-
-    // check whether there already is such directory created
-    // create lambda to find  directory
-    auto findDir = [dirname](Directory dir) {return dir.getName().compare(dirname) == 0; };
-    // find subdir with specified name and return iterator
-    list<Directory>::iterator it = find_if(current_dir_ptr->children.begin(), current_dir_ptr->children.end(), findDir);
-
-    if (it == current_dir_ptr->children.end()) {
-        // no such directory found, create it
-        Directory dir(dirname);
-        dir.parent = current_dir_ptr;
-        current_dir_ptr->children.push_back(dir);
-    }
-    else {
-        // do nothing
-    }
-}
-
-void createFile(Directory*& current_dir_ptr, string line) {
-    // extract filename and filesize from line
-    size_t space = line.find(" ");
-    string filename = line.substr(space, string::npos);
-    int filesize = stoi(line.substr(0, space));
-
-    // check whether there is already such file created
-    // create lambda to find file
-    auto files = current_dir_ptr->getFiles();
-    auto findFile = [filename](pair<string, int> file) {return filename.compare(get<0>(file)) == 0; };
-    // find subdir with specified name and return iterator
-    map<string, int>::iterator it = find_if(files.begin(), files.end(), findFile);
-
-    if (it == files.end()) {
-        // no such file was found, add it
-        current_dir_ptr->addFile(filename, filesize);
-        // update the size of the containing tree of directories, until current_dir_ptr->parent == nullptr
-        // maybe use a copy to current_dir_ptr to not loose the current pointed directory
-        Directory* parentDir = current_dir_ptr->parent;
-        updateParentDirectorySize(parentDir, filesize);
-    }
-    else {
-        // do nothing
-    }
-    
-}
-
-void updateParentDirectorySize(Directory*& parent_dir_ptr, int filesize) {
-    if (parent_dir_ptr != nullptr) {
-        parent_dir_ptr->updateSize(filesize);
-        updateParentDirectorySize(parent_dir_ptr->parent, filesize);
-    }
-}
-
-void calculateTotalSize(int& total_size_sum, Directory*& current_dir_ptr) {
-    if(current_dir_ptr->getSize() <= 100'000)
-        total_size_sum += current_dir_ptr->getSize();
-
-    if (!current_dir_ptr->children.empty()) {
-        Directory* ptr;
-        for (auto it : current_dir_ptr->children) {
-            ptr = &it;
-            calculateTotalSize(total_size_sum, ptr);
-        }
-    }
-}
-
-void findDirToDelete(Directory*& current_dir_ptr, int& size_to_delete, int space_to_free) {
-    
-    if (current_dir_ptr->getSize() >= space_to_free &&
-         current_dir_ptr->getSize() < size_to_delete) {
-        size_to_delete = current_dir_ptr->getSize();
-    }
-    Directory* ptr = nullptr;
-    for (auto it : current_dir_ptr->children) {
-        ptr = &it;
-        findDirToDelete(ptr, size_to_delete, space_to_free);
     }
 }
