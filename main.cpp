@@ -1,19 +1,36 @@
 #include <algorithm>
 using std::find_if;
+using std::sort;
 #include <fstream>
+using std::ifstream;
+#include <functional>
+using std::greater;
 #include <iostream>
+using std::cout;
+using std::endl;
 #include <deque>
+using std::deque;
 #include <list>
+using std::list;
 #include <map>
+using std::map;
 #include <sstream>
+using std::stringstream;
 #include <stack>
+using std::stack;
 #include <stdexcept>
+using std::out_of_range;
 #include <string>
+using std::string;
 using std::stoi;
+#include<tuple>
+using std::get;
 #include <unordered_map>
+using std::unordered_map;
+#include <utility>
+using std::pair;
 #include <vector>
-
-using namespace std;
+using std::vector;
 
 // Classes
 class Elf {
@@ -145,7 +162,7 @@ void day1() {
     cout << "Highest calories count: " << highest_calories << endl;
 
     // sort vector in descending order
-    std::sort(tribe.begin(), tribe.end(), greater<Elf>());
+    sort(tribe.begin(), tribe.end(), greater<Elf>());
 
     // print the 3 highest elfs
     int total_top3 = 0;
@@ -321,8 +338,8 @@ void day3() {
         // when one char is found 3 times (once each string), that's the common char for all strings
 
         // remove duplicates in input string
-        std::sort(line.begin(), line.end());
-        line.erase(std::unique(line.begin(), line.end()), line.end());
+        sort(line.begin(), line.end());
+        line.erase(unique(line.begin(), line.end()), line.end());
         group[group_counter] = line;
         cout << "New string: " << line << endl;
 
@@ -650,7 +667,7 @@ void day7() {
         current_dir_ptr = &(*filesystem.begin());
         calculateTotalSize(total_size_sum, current_dir_ptr);
 
-        std::cout << "Total size: " << total_size_sum << std::endl;
+        cout << "Total size: " << total_size_sum << endl;
         
         // calculate total available space
         int available_space = total_disk_space - filesystem.begin()->getSize();
@@ -660,9 +677,9 @@ void day7() {
         current_dir_ptr = &(*filesystem.begin());
         findDirToDelete(current_dir_ptr, size_to_delete, space_to_free);
 
-        std::cout << "Dir to delete: size: " << size_to_delete << std::endl;
+        cout << "Dir to delete: size: " << size_to_delete << endl;
 
-        std::cout << "Done!" << std::endl;
+        cout << "Done!" << endl;
 
     }
 }
@@ -670,7 +687,7 @@ void day7() {
 void executeCommand(Directory*& current_dir_ptr, string line) {
     if (line.substr(2, 2).compare("cd") == 0) {
         // extract dirname from line
-        string dirname = line.substr(5, std::string::npos);
+        string dirname = line.substr(5, string::npos);
         // check whether it's a proper directory name or ..
         if (dirname.compare("..") == 0) {
             // move up a level
@@ -692,12 +709,12 @@ void executeCommand(Directory*& current_dir_ptr, string line) {
         // do nothing
     }
     else
-        std::cout << "Command not recognized" << std::endl;
+        cout << "Command not recognized" << endl;
 }
 
 void createDirectory(Directory*& current_dir_ptr, string line) {
     // extract dirname from line
-    string dirname = line.substr(4, std::string::npos);
+    string dirname = line.substr(4, string::npos);
 
     // check whether there already is such directory created
     // create lambda to find  directory
@@ -718,14 +735,14 @@ void createDirectory(Directory*& current_dir_ptr, string line) {
 
 void createFile(Directory*& current_dir_ptr, string line) {
     // extract filename and filesize from line
-    std::size_t space = line.find(" ");
-    string filename = line.substr(space, std::string::npos);
+    size_t space = line.find(" ");
+    string filename = line.substr(space, string::npos);
     int filesize = stoi(line.substr(0, space));
 
     // check whether there is already such file created
     // create lambda to find file
     auto files = current_dir_ptr->getFiles();
-    auto findFile = [filename](std::pair<string, int> file) {return filename.compare(get<0>(file)) == 0; };
+    auto findFile = [filename](pair<string, int> file) {return filename.compare(get<0>(file)) == 0; };
     // find subdir with specified name and return iterator
     map<string, int>::iterator it = find_if(files.begin(), files.end(), findFile);
 
