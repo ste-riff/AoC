@@ -48,6 +48,7 @@ void day4();
 void day5();
 void day6();
 void day7();
+void day8();
 
 /************** MAIN *************/
 
@@ -60,7 +61,8 @@ int main() {
     // day4();
     // day5();
     // day6();
-    day7();
+    // day7();
+    day8();
 
    return 0;
 }
@@ -619,6 +621,60 @@ void day7() {
         cout << "Dir to delete: size: " << size_to_delete << endl;
 
         cout << "Done!" << endl;
+
+    }
+}
+
+void day8() {
+    cout << "### Day 8 ###" << endl;
+
+    //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day8.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
+    ifstream input_file(filename);
+    string line;
+
+    if (input_file.fail()) {
+        cout << "Unable to open the file: " << filename << endl;
+    }
+    else {
+        vector<vector<int>> wood, visible_trees;
+
+        // Fill the matrix with values
+        while (getline(input_file, line, '\n')) {
+            vector<int> temp, temp_visible;
+            for(auto it : line) {
+                temp.push_back(atoi(&it));
+                temp_visible.push_back(0);
+            }
+            wood.push_back(temp);
+            visible_trees.push_back(temp_visible);
+        }
+
+        // check rows
+        int highest = 0;
+        for (int i = 0; i < wood.size(); i++) {
+            for (int j = 0; j < wood.size(); j++) {
+                if (wood[i][j] > highest) {
+                    visible_trees[i][j] = 1;
+                    highest = wood[i][j];
+                }
+
+            }
+        }
+
+        // Calculate visible trees
+        // 1. all perimeter trees are visible by definition
+        // 2. memorize highest tree (among already visited) for each row and column
+        // 3. perimeter trees are highest in the beginning
+        // 4. if new tree higher than highest, then it's visible (then update highest height)
+        // Algorithm
+        // For each row:
+        //  1. element[0] is highest and visible
+        //  2. element[n+1] > element[n]? n+1 highest and visible : do nothing and move to next
+        // Repeate for each column.
+        // Data struct: a copy of woods initialized to all 0s? and set to 1 each visible tree that is found? to avoid counting same tree multiple times.
+
+        cout << "Done" << endl;
 
     }
 }
