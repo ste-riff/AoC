@@ -628,8 +628,8 @@ void day7() {
 void day8() {
     cout << "### Day 8 ###" << endl;
 
-    //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day8.txt";
-    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
+    const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/Day8.txt";
+    //const string filename = "C:/Users/StefanoSavarino/Documents/code/AoC/Inputs/test.txt";
     ifstream input_file(filename);
     string line;
 
@@ -650,29 +650,57 @@ void day8() {
             visible_trees.push_back(temp_visible);
         }
 
-        // check rows
-        int highest = 0;
+        int highest_column = -1, highest_row = -1; // initialized to -1 because 0 is a valid value
+        
+        // check from left to right and from top to bottom
         for (int i = 0; i < wood.size(); i++) {
             for (int j = 0; j < wood.size(); j++) {
-                if (wood[i][j] > highest) {
+                // checking row
+                if (wood[i][j] > highest_row) {
                     visible_trees[i][j] = 1;
-                    highest = wood[i][j];
+                    highest_row = wood[i][j];
+                }
+
+                // checking column
+                if (wood[j][i] > highest_column) {
+                    visible_trees[j][i] = 1;
+                    highest_column = wood[j][i];
                 }
 
             }
+            highest_column = -1;
+            highest_row = -1;
         }
 
-        // Calculate visible trees
-        // 1. all perimeter trees are visible by definition
-        // 2. memorize highest tree (among already visited) for each row and column
-        // 3. perimeter trees are highest in the beginning
-        // 4. if new tree higher than highest, then it's visible (then update highest height)
-        // Algorithm
-        // For each row:
-        //  1. element[0] is highest and visible
-        //  2. element[n+1] > element[n]? n+1 highest and visible : do nothing and move to next
-        // Repeate for each column.
-        // Data struct: a copy of woods initialized to all 0s? and set to 1 each visible tree that is found? to avoid counting same tree multiple times.
+        // check from right to left and from bottom to top
+        for (int i = wood.size() - 1; i >= 0; i--) {
+            for (int j = wood.size() - 1; j >= 0; j--) {
+                // checking row
+                if (wood[i][j] > highest_row) {
+                    visible_trees[i][j] = 1;
+                    highest_row = wood[i][j];
+                }
+
+                // checking column
+                if (wood[j][i] > highest_column) {
+                    visible_trees[j][i] = 1;
+                    highest_column = wood[j][i];
+                }
+            }
+            highest_column = -1;
+            highest_row = -1;
+        }
+
+        // count number of ones in visible_trees
+        int total_visible = 0;
+        for (int i = 0; i < visible_trees.size(); i++) {
+            for (int j = 0; j < visible_trees.size(); j++) {
+                if (visible_trees[i][j] == 1)
+                    total_visible++;
+            }
+        }
+
+        cout << "Visible trees: " << total_visible << endl;
 
         cout << "Done" << endl;
 
