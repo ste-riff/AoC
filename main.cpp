@@ -702,6 +702,105 @@ void day8() {
 
         cout << "Visible trees: " << total_visible << endl;
 
+        // Part 2
+        // create a new integer value to store the highest score found so far
+        // for each tree:
+        // 1. move up until you reach id 0, or until you reach a tree as high or higher than the current one
+        // 2. move down until you reach id 0, or until you reach a tree as high or higher than the current one
+        // 3. move left until you reach id 0, or until you reach a tree as high or higher than the current one
+        // 4. move right until you reach id 0, or until you reach a tree as high or higher than the current one
+        // store each score in its own variable, then multiply them.
+        // If the result is higher than current, then update current, otherwise, move on.
+        int d_up = 0, d_down = 0, d_right = 0, d_left = 0;
+        int highest_score = 0;
+
+        for (int i = 0; i < wood.size(); i++) {
+            for (int j = 0; j < wood.size(); j++) {
+                if (i == 0
+                    || i == wood.size() - 1
+                    || j == 0
+                    || j == wood.size() - 1) {
+                    // one of the multipliers is 0, we don't need to calculate the others
+                }
+                else {
+                    // check row/column in each direction as long as:
+                    // 1. the value is not on the edge and the direction is toward the edge
+                    // 2. a higher, or as high, tree is found
+                    int temp_i = i, temp_j = j;
+
+                    // check up
+                    while (temp_i > 0 &&
+                        temp_i != wood.size() - 1 &&
+                        temp_j != 0 &&
+                        temp_j != wood[i].size() - 1) {
+                        temp_i--;
+                        if (wood[temp_i][j] >= wood[i][j]) {
+                            d_up++;
+                            break;
+                        }
+                        else {
+                            d_up++;
+                        }
+                    }
+                    temp_i = i;
+                    // check down
+                    while (temp_i != 0 &&
+                        temp_i < wood.size() - 1 &&
+                        temp_j != 0 &&
+                        temp_j != wood[i].size() - 1) {
+                        temp_i++;
+                        if (wood[temp_i][j] >= wood[i][j]) {
+                            d_down++;
+                            break;
+                        }
+                        else {
+                            d_down++;
+                        }
+                    }
+                    temp_i = i;
+                    // check left
+                    while (temp_i != 0 &&
+                        temp_i != wood.size() - 1 &&
+                        temp_j > 0 &&
+                        temp_j != wood[i].size() - 1) {
+                        temp_j--;
+                        if (wood[i][temp_j] >= wood[i][j]) {
+                            d_left++;
+                            break;
+                        }
+                        else {
+                            d_left++;
+                        }
+                    }
+                    temp_j = j;
+                    // check right
+                    while (temp_i != 0 &&
+                        temp_i != wood.size() - 1 &&
+                        temp_j != 0 &&
+                        temp_j < wood[i].size() - 1) {
+                        temp_j++;
+                        if (wood[i][temp_j] >= wood[i][j]) {
+                            d_right++;
+                            break;
+                        }
+                        else {
+                            d_right++;
+                        }
+                    }
+                    temp_j = j;
+
+                }
+                int temp_score = d_up * d_down * d_right * d_left;
+
+                if (highest_score < temp_score)
+                    highest_score = temp_score;
+
+                // reset values for next loop
+                d_up = d_down = d_left = d_right = 0;
+            }
+        }
+
+        cout << "Highest scenic score: " << highest_score << endl;
         cout << "Done" << endl;
 
     }
